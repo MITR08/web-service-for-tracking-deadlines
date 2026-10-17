@@ -80,3 +80,48 @@
   * [`Схемы_БД/schema_postgresql.sql`](./Схемы_БД/schema_postgresql.sql) — полный DDL-скрипт создания таблиц, индексов и представлений для PostgreSQL 15+;
   * [`Схемы_БД/README.md`](./Схемы_БД/README.md) — подробное описание таблиц, связей и реализации бизнес-логики в БД.
 
+---
+
+## 🗂 Структура репозитория
+
+```text
+├── .github/workflows/ci.yml   # GitHub Actions CI/CD (линтеры, тесты, проверка миграций и сборки)
+├── backend/                   # Backend-сервер (Python 3.11, FastAPI, SQLAlchemy 2.0, Alembic)
+│   ├── alembic/               # Конфигурация и ревизии миграций БД (0001_initial_schema.py)
+│   ├── app/
+│   │   ├── api/               # REST API роутеры (/api/v1/health и др.)
+│   │   ├── core/              # Конфигурация (Pydantic Settings) и подключение к PostgreSQL
+│   │   ├── models/            # Все 14 ORM-моделей SQLAlchemy 2.0
+│   │   └── main.py            # Точка входа FastAPI + автогенерация Swagger / OpenAPI
+│   ├── tests/                 # Автотесты Pytest (проверка схемы БД, OpenAPI и healthcheck)
+│   ├── Dockerfile             # Образ Backend-приложения
+│   ├── pyproject.toml         # Настройки линтера Ruff и Pytest
+│   └── requirements.txt       # Зависимости Python
+├── frontend/                  # SPA-клиент (React 18, Vite, React Router v6)
+│   ├── src/                   # Компоненты, лейаут и маршрутизация всех разделов (п. 4.6 ТЗ)
+│   ├── Dockerfile             # Multi-stage сборка (Node 20 -> Nginx Alpine)
+│   └── nginx.conf             # Конфигурация Nginx (SPA fallback + проксирование /api)
+├── Схемы_БД/                  # Проект Enterprise Architect (.qea) и DDL-скрипт PostgreSQL
+├── ТЗ/                        # Исходная и исправленная редакции Технического задания
+├── .env.example               # Шаблон переменных окружения
+└── docker-compose.yml         # Полный стек: PostgreSQL 15, Redis 7, MinIO S3, Backend, Frontend
+```
+
+---
+
+## 🚀 Быстрый запуск (Docker Compose)
+
+1. Скопируйте шаблон переменных окружения:
+   ```bash
+   cp .env.example .env
+   ```
+2. Запустите все сервисы одной командой:
+   ```bash
+   docker compose up --build -d
+   ```
+3. Доступные адреса после запуска:
+   * **Frontend (React SPA)**: `http://localhost` (или `http://localhost:5173` при локальном запуске через `npm run dev`)
+   * **Backend REST API & Swagger UI**: `http://localhost:8000/docs`
+   * **ReDoc документация**: `http://localhost:8000/redoc`
+   * **OpenAPI JSON-спецификация**: `http://localhost:8000/openapi.json`
+   * **MinIO Console (S3-хранилище)**: `http://localhost:9001`

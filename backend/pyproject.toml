@@ -1,0 +1,24 @@
+[project]
+name = "deadline-tracker-backend"
+version = "1.0.0"
+description = "REST API сервер для веб-приложения учёта заданий и дедлайнов учебной группы"
+requires-python = ">=3.10"
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    "venv",
+    "alembic/versions",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

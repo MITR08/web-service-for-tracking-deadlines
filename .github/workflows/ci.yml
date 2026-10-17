@@ -1,0 +1,87 @@
+name: CI — Linting, Database Migrations & Build
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  backend-ci:
+    name: Backend (Ruff Linter, Alembic Migrations & Pytest)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: deadline_user
+          POSTGRES_PASSWORD: deadline_secret_password
+          POSTGRES_DB: deadline_tracker_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql+psycopg2://deadline_user:deadline_secret_password@localhost:5432/deadline_tracker_db
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Ruff linter (PEP 8 check)
+        working-directory: backend
+        run: ruff check .
+
+      - name: Run Alembic database migrations (upgrade & downgrade check)
+        working-directory: backend
+        run: |
+          alembic upgrade head
+          alembic downgrade base
+          alembic upgrade head
+
+      - name: Run backend test suite (Swagger / OpenAPI / ORM verification)
+        working-directory: backend
+        run: pytest -v
+
+  frontend-ci:
+    name: Frontend (ESLint & Vite Production Build)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm install
+
+      - name: Run ESLint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Build production SPA bundle
+        working-directory: frontend
+        run: npm run build
